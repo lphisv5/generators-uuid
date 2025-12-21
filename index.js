@@ -1,5 +1,4 @@
 import express from "express";
-import { randomUUID } from "crypto";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,7 +19,7 @@ function generatePremiumUUID() {
   const part3 = randomString(5);
   const part4 = randomString(4);
   const part5 = randomString(6);
-  return `YZ-\( {part1}- \){part2}-\( {part3}- \){part4}-${part5}`;
+  return `YZ-${part1}-${part2}-${part3}-${part4}-${part5}`;
 }
 
 app.get("/api/uuid", (req, res) => {
