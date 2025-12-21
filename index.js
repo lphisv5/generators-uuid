@@ -1,33 +1,33 @@
 import express from "express";
+import { randomUUID } from "crypto";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get("/api", async (req, res) => {
-  res.json({
-    apiName: "YanzAPI",
-    apiUrl: "https://yanzapi.lol",
-    status: "running",
-    updatedAt: new Date().toISOString(),
-    message:
-      "Source website uses client-side rendering. Executor data is not accessible via server-side fetch.",
-    data: [
-      {
-        name: "Executors List",
-        status: "N/A",
-        version: "N/A"
-      }
-    ]
-  });
-});
+function randomDigits(length) {
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += Math.floor(Math.random() * 10);
+  }
+  return result;
+}
 
-app.get("/", (req, res) => {
+function generatePremiumUUID() {
+  const part1 = randomDigits(5);
+  const part2 = randomDigits(4);
+  const part3 = randomDigits(5);
+  const part4 = randomDigits(4);
+  const part5 = randomDigits(6);
+  return `YZ-${part1}-${part2}-${part3}-${part4}-${part5}`;
+}
+
+app.get("/api/uuid", (req, res) => {
   res.json({
-    message: "YanzAPI is running",
-    endpoint: "/api"
+    result: generatePremiumUUID(),
+    version: "v8",
   });
 });
 
 app.listen(PORT, () => {
-  console.log(`YanzAPI running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
