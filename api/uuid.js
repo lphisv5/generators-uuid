@@ -1,30 +1,57 @@
 const express = require("express");
+const crypto = require("crypto");
 const router = express.Router();
 
-const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+const PREFIX = "YZ";
+const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const SECRET = process.env.UUID_SECRET || "CHANGE_ME";
 
-function randomString(length) {
+function secureRandom(length) {
+  const bytes = crypto.randomBytes(length);
   let result = "";
   for (let i = 0; i < length; i++) {
-    result += CHARS.charAt(Math.floor(Math.random() * CHARS.length));
+    result += ALPHABET[bytes[i] % ALPHABET.length];
   }
   return result;
 }
 
-function generatePremiumUUID() {
-  const part1 = randomString(5);
-  const part2 = randomString(4);
-  const part3 = randomString(5);
-  const part4 = randomString(4);
-  const part5 = randomString(6);
-  return `YZ-${part1}-${part2}-${part3}-${part4}-${part5}`;
+function checksum(data) {
+  return crypto
+    .createHmac("sha256", SECRET)
+    .update(data)
+    .digest("base64url")
+    .slice(0, 6)
+    .toUpperCase();
+}
+
+function generatePremiumUUIDv8() {
+  const bytes = crypto.randomBytes(16);
+
+  bytes[6] = (bytes[6] & 0x0f) | 0x80;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const timeHash = crypto
+    .createHash("sha1")
+    .update(Date.now().toString())
+    .digest("hex")
+    .slice(0, 6)
+    .toUpperCase();
+
+  const partA = secureRandom(5);
+  const partB = secureRandom(5);
+  const partC = secureRandom(5);
+
+  const base = `${PREFIX}-${timeHash}-${partA}-${partB}-${partC}`;
+  const sign = checksum(base);
+
+  return `${base}-${sign}`;
 }
 
 router.get("/uuid", (req, res) => {
   res.status(200).json({
-    result: generatePremiumUUID(),
-    version: "v8",
-    timestamp: new Date().toISOString(),
+    result: generatePremiumUUIDv8(),
+    version: "UUID v8 (custom-secure)",
+    issued_at: new Date().toISOString(),
   });
 });
 
