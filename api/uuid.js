@@ -1,6 +1,7 @@
 const express = require("express");
 const crypto = require("crypto");
 
+const app = express();
 const router = express.Router();
 
 const PREFIX = "YZ";
@@ -65,7 +66,8 @@ function verifyUUID(uuid) {
   return sign === expected;
 }
 
-router.get("/uuid", (req, res) => {
+/* MAIN ENDPOINT */
+router.get("/", (req, res) => {
 
   const verifyParam = req.query.verify;
 
@@ -87,4 +89,6 @@ router.get("/uuid", (req, res) => {
 
 });
 
-module.exports = router;
+app.use("/", router);
+
+module.exports = app;
