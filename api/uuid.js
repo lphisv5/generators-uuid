@@ -1,8 +1,4 @@
-const express = require("express");
 const crypto = require("crypto");
-
-const app = express();
-const router = express.Router();
 
 const PREFIX = "YZ";
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -41,7 +37,7 @@ function timeHash() {
 }
 
 /* GENERATE */
-function generatePremiumUUIDv8() {
+function generateUUID() {
   const partA = secureRandom(5);
   const partB = secureRandom(5);
   const partC = secureRandom(5);
@@ -66,29 +62,25 @@ function verifyUUID(uuid) {
   return sign === expected;
 }
 
-/* MAIN ENDPOINT */
-router.get("/", (req, res) => {
+/* API HANDLER */
+module.exports = (req, res) => {
 
   const verifyParam = req.query.verify;
 
   if (verifyParam) {
     const valid = verifyUUID(verifyParam);
 
-    return res.json({
+    return res.status(200).json({
       uuid: verifyParam,
       valid
     });
   }
 
-  const uuid = generatePremiumUUIDv8();
+  const uuid = generateUUID();
 
-  res.json({
+  res.status(200).json({
     uuid,
     version: "v8-premium"
   });
 
-});
-
-app.use("/", router);
-
-module.exports = app;
+};
