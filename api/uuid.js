@@ -1,13 +1,13 @@
 const express = require("express");
 const crypto = require("crypto");
 
-const app = express();
 const router = express.Router();
 
 const PREFIX = "YZ";
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const SECRET = process.env.UUID_SECRET || "CHANGE_ME_SECRET";
 
+/* RANDOM */
 function secureRandom(length) {
   const bytes = crypto.randomBytes(length);
   let result = "";
@@ -19,6 +19,7 @@ function secureRandom(length) {
   return result;
 }
 
+/* SIGNATURE */
 function checksum(data) {
   return crypto
     .createHmac("sha256", SECRET)
@@ -28,6 +29,7 @@ function checksum(data) {
     .toUpperCase();
 }
 
+/* TIME HASH */
 function timeHash() {
   return crypto
     .createHash("sha1")
@@ -37,6 +39,7 @@ function timeHash() {
     .toUpperCase();
 }
 
+/* GENERATE */
 function generatePremiumUUIDv8() {
   const partA = secureRandom(5);
   const partB = secureRandom(5);
@@ -48,6 +51,7 @@ function generatePremiumUUIDv8() {
   return `${base}-${sign}`;
 }
 
+/* VERIFY */
 function verifyUUID(uuid) {
   const parts = uuid.split("-");
 
@@ -62,47 +66,25 @@ function verifyUUID(uuid) {
 }
 
 router.get("/uuid", (req, res) => {
+
+  const verifyParam = req.query.verify;
+
+  if (verifyParam) {
+    const valid = verifyUUID(verifyParam);
+
+    return res.json({
+      uuid: verifyParam,
+      valid
+    });
+  }
+
   const uuid = generatePremiumUUIDv8();
 
   res.json({
-    success: true,
     uuid,
     version: "v8-premium"
   });
+
 });
 
-router.get("/uuid/verify/:id", (req, res) => {
-  const uuid = req.params.id;
-  const valid = verifyUUID(uuid);
-
-  res.json({
-    uuid,
-    valid
-  });
-});
-
-router.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    service: "uuid-generator",
-    timestamp: Date.now()
-  });
-});
-
-app.use(express.json());
-app.use("/api", router);
-
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  next();
-});
-
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-
-  res.status(500).json({
-    error: "Internal Server Error"
-  });
-});
-
-module.exports = app;
+module.exports = router;
