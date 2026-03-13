@@ -1,6 +1,7 @@
 const express = require("express");
 const crypto = require("crypto");
 
+const app = express();
 const router = express.Router();
 
 const PREFIX = "YZ";
@@ -61,30 +62,38 @@ function verifyUUID(uuid) {
 }
 
 router.get("/uuid", (req, res) => {
+  const uuid = generatePremiumUUIDv8();
+
   res.json({
-    uuid: generatePremiumUUIDv8(),
-    version: "v8-premium",
+    success: true,
+    uuid,
+    version: "v8-premium"
   });
 });
 
 router.get("/uuid/verify/:id", (req, res) => {
-  const valid = verifyUUID(req.params.id);
+  const uuid = req.params.id;
+  const valid = verifyUUID(uuid);
 
   res.json({
-    uuid: req.params.id,
-    valid,
+    uuid,
+    valid
   });
 });
 
-const app = express();
+router.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "uuid-generator",
+    timestamp: Date.now()
+  });
+});
 
 app.use(express.json());
 app.use("/api", router);
 
 app.use((req, res, next) => {
-  console.log(
-    `[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`
-  );
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
@@ -92,7 +101,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
 
   res.status(500).json({
-    error: "Internal Server Error",
+    error: "Internal Server Error"
   });
 });
 
