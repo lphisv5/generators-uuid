@@ -51,8 +51,7 @@ router.get("/uuid", (req, res) => {
   try {
     res.status(200).json({
       result: generatePremiumUUIDv8(),
-      version: "v8",
-      timestamp: new Date().toISOString()
+      version: "v8"
     });
   } catch (error) {
     console.error("Error generating UUID:", error);
@@ -63,10 +62,9 @@ router.get("/uuid", (req, res) => {
   }
 });
 
-router.get("/health", (req, res) => {
+router.get("/info", (req, res) => {
   res.status(200).json({ 
-    status: "ok", 
-    timestamp: new Date().toISOString() 
+    status: "ok"
   });
 });
 
